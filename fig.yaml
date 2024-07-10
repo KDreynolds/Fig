@@ -1,0 +1,27 @@
+global_vars:
+  app_name: myapp
+  app_version: 1.2.3
+
+server_groups:
+  - name: web_servers
+    hosts:
+      - 192.168.1.100
+      - 192.168.1.101
+    ssh_user: ubuntu
+    ssh_key: /path/to/key.pem
+
+tasks:
+  - name: update_packages
+    command: sudo apt-get update && sudo apt-get upgrade -y
+  - name: deploy_app
+    command: "docker pull {{.app_name}}:{{.app_version}} && docker run -d {{.app_name}}:{{.app_version}}"
+    vars:
+      port: 8080
+
+configurations:
+  - name: web_server_update
+    servers:
+      - web_servers
+    tasks:
+      - update_packages
+      - deploy_app

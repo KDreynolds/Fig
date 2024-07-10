@@ -8,6 +8,7 @@ import (
 
 	"github.com/KDreynolds/fig/internal/config"
 	"github.com/KDreynolds/fig/internal/ssh"
+	"github.com/KDreynolds/fig/internal/template"
 )
 
 func main() {
@@ -52,8 +53,41 @@ func applyConfig(configFile, user, keyPath string) {
 		log.Fatalf("Failed to create SSH client: %v", err)
 	}
 
-	// TODO: Implement logic to apply configuration using parsed config and SSH client
-	fmt.Println("Applying configuration...")
+	engine := template.New()
+
+	// Example: Apply the first configuration
+	if len(cfg.Configurations) > 0 {
+		conf := cfg.Configurations[0]
+		fmt.Printf("Applying configuration: %s\n", conf.Name)
+
+		for _, serverGroupName := range conf.Servers {
+			serverGroup, err := cfg.GetServerGroup(serverGroupName)
+			if err != nil {
+				log.Fatalf("Failed to get server group: %v", err)
+			}
+
+			for _, host := range serverGroup.Hosts {
+				for _, taskName := range conf.Tasks {
+					task, err := cfg.GetTask(taskName)
+					if err != nil {
+						log.Fatalf("Failed to get task: %v", err)
+					}
+
+					renderedCommand, err := engine.RenderTask(task.Command, task.Vars, cfg.GlobalVars)
+					if err != nil {
+						log.Fatalf("Failed to render task command: %v", err)
+					}
+
+					output, err := client.RunCommand(host, renderedCommand)
+					if err != nil {
+						log.Fatalf("Failed to run command on %s: %v", host, err)
+					}
+
+					fmt.Printf("Output from %s:\n%s\n", host, output)
+				}
+			}
+		}
+	}
 }
 
 func checkConfig(configFile string) {

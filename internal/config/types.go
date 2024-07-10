@@ -20,7 +20,8 @@ type Configuration struct {
 }
 
 type Config struct {
-	ServerGroups   []ServerGroup   `yaml:"server_groups"`
-	Tasks          []Task          `yaml:"tasks"`
-	Configurations []Configuration `yaml:"configurations"`
+	ServerGroups   []ServerGroup     `yaml:"server_groups"`
+	Tasks          []Task            `yaml:"tasks"`
+	Configurations []Configuration   `yaml:"configurations"`
+	GlobalVars     map[string]string `yaml:"global_vars,omitempty"`
 }
